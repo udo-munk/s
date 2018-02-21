@@ -16,7 +16,7 @@
 *
 *	A list of the addressing commands follows.  The default value of the
 *	count <n> is 1, except for commands g (where it is the number of lines
-*	in the buffer) and ctrl(d) and ctrl(u) (where it is half of a screen).
+*	in the buffer) and ctrl('d') and ctrl('u') (where it is half of a screen).
 *	Commands M, 0 (zero), ' (apostrophe), and ` (backquote) ignore the count.
 *
 *			Line Addresses:
@@ -98,6 +98,15 @@
 
 #include "s.h"
 
+static do_up_down();
+static int col_to_pos();
+static int pos_to_col();
+static loc_char();
+static loc_word();
+static int word_start();
+static loc_string();
+static int locate();
+
 address(n, c, op)
 int n;
 char c, op;
@@ -108,7 +117,7 @@ char c, op;
 	char ch, text[MAXTEXT-1];
 
 	/* set default count to 1, except for three special cases */
-	if (n == 0 && c != 'g' && c != ctrl(d) && c != ctrl(u))
+	if (n == 0 && c != 'g' && c != ctrl('d') && c != ctrl('u'))
 		n = 1;
 	b_getcur(&cur_line, &cur_pos);	/* cursor location */
 	line_addr = 0;	/* reset by commands that address lines */
@@ -137,13 +146,13 @@ char c, op;
 		case '-':
 			line_addr = max (cur_line - n, 1);
 			break;
-		case ctrl(d):
+		case ctrl('d'):
 			/* ad hoc interpretation of the count */
 			if (n != 0)
 				scroll_size = n;
 			line_addr = s_lastline() + scroll_size;
 			break;
-		case ctrl(u):
+		case ctrl('u'):
 			if (n != 0)
 				scroll_size = n;
 			line_addr = max (s_firstline() - scroll_size, 1);
