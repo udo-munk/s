@@ -56,6 +56,8 @@ static int
 	last_id = 0,		/* last ID assigned to a buffer line */
 	ref_nbr;		/* number of recently referenced line */
 
+static reference();
+
 /* buf_delete - delete buffer lines */
 buf_delete(from, to)
 int from, to;
