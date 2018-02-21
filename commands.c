@@ -144,6 +144,12 @@
 
 static char cur_file[MAXTEXT];	/* remembers name of the current file */
 
+static do_star();
+static do_io();
+static int do_read();
+static do_write();
+static write_lines();
+
 int simp_cmd(n, c)
 int n;
 char c;
