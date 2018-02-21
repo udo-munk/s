@@ -146,6 +146,9 @@ static struct mod_rec
 	*curr_recs,		/* mod recs for current user command */
 	*prev_recs;		/* mod recs for previous user change */
 
+static add_rec();
+static free_recs();
+
 /* b_changed - tell if last command changed the buffer */
 int b_changed()
 {
