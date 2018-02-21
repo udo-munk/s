@@ -77,6 +77,9 @@
 
 #include "s.h"
 
+static do_delete();
+static in_chars();
+
 /* do_insert - insert text */
 do_insert()
 {
