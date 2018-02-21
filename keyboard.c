@@ -50,7 +50,24 @@
 *	int count;
 *		Format msg and save it for the next screen refreshing.
 */
+
+#ifdef TERMIOS
+#include <termios.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+static struct termios oldt;
+#else
+#ifdef CONIO
+#include <conio.h>
+#include <signal.h>
+#else
+#include <sgtty.h>
+static struct sgttyb oldt;
+#endif
+#endif
+
 #include "s.h"
+
 #define CMD_MAX 500		/* longest command that can be redone */
 
 static char
@@ -146,22 +163,6 @@ k_redo()
 		k_donext(change);
 }
 
-
-#ifdef TERMIOS
-#include <termios.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-static struct termios oldt;
-#else
-#ifdef CONIO
-#include <conio.h>
-#include <signal.h>
-#else
-#include <sgtty.h>
-static struct sgttyb oldt;
-#endif
-#endif
-
 /* keyboard input mode */
 static int k_raw = 0;
 
@@ -194,6 +195,12 @@ int k_keyin()
 
 static k_flip()
 {
+#ifdef TERMIOS
+	struct termios newt;
+#else
+	struct sgttyb newt;
+#endif
+
 	if (!k_raw) {
 		k_raw = 1;
 #ifdef CONIO
@@ -202,7 +209,6 @@ static k_flip()
 		signal(SIGINT, SIG_IGN);
 #else
 #ifdef TERMIOS
-		struct termios newt;
 		ioctl(0, TCGETS, &oldt);
 		ioctl(0, TCGETS, &newt);
 		newt.c_lflag &= ~(ISIG|ICANON|ECHO);
@@ -212,7 +218,6 @@ static k_flip()
 		newt.c_cc[VTIME] = 0;
 		ioctl(0, TCSETSW, &newt);
 #else
-		struct sgttyb newt;
 		ioctl(0, TIOCGETP, &oldt);
 		ioctl(0, TIOCGETP, &newt);
 		newt.sg_flags |= RAW;
