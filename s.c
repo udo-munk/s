@@ -81,6 +81,8 @@
 
 #include "s.h"
 
+static int get_count();
+
 main(argc, argv)
 int argc;
 char *argv[];
