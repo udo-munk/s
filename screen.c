@@ -80,6 +80,9 @@
 static int cur_row = 0, cur_col;	/* cursor location */
 static char save = '\0';	/* character in location (NROW, NCOL-1) */
 
+static errmsg();
+static wait();
+
 /* scr_clr - clear the current row */
 scr_clr()
 {
