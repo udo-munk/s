@@ -57,6 +57,8 @@ struct y_line {
 
 static struct y_line *start = NULL;
 
+static free_ybuf();
+
 /* do_put - copy the yank buffer to the file buffer */
 do_put(way)
 int way;
