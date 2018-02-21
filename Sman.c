@@ -66,6 +66,9 @@
 *	int k_getch()					.. file keyboard.c
 *		Return the next character of the current command.
 *
+*	int k_keyin()					.. file keyboard.c
+*		Get a character from the keyboard.
+*
 *	scr_clr()					.. file screen.c
 *		Clear the remainder of the row, i.e., delete the characters
 *		under, and to the right of, the cursor.  Characters to the
@@ -144,6 +147,26 @@ static char
 	*text[MAXROWS+1];	/* text of line at row i (subscript 0 unused) */
 
 
+static int after_line();
+static bottom();
+static int can_scroll();
+static changes();
+static chop_arg();
+static chop_cpy();
+static delete();
+static display();
+static displ_text();
+static int expand();
+static int good_first();
+static insert();
+static ins_text();
+static pos_to_seg();
+static repaint();
+static replace();
+static repl_text();
+static int row_of_id();
+static scroll();
+
 /* s_errmsg - format and print msg; wait for the user to read it */
 s_errmsg(msg, val)
 char *msg;
@@ -153,7 +176,7 @@ int val;
 
 	sprintf(message, msg, val);
 	s_putmsg(message);
-	getchar();
+	k_keyin();
 }
 
 /* s_finish - terminate the edit session */
