@@ -75,19 +75,23 @@
 *		Format msg and save it for the next screen refreshing.
 */
 
+#include <string.h>
+
 #include "s.h"
 
-static do_delete();
-static in_chars();
+extern void b_getcur(), s_putmsg(), s_savemsg(), b_setcur(), b_delete();
+extern void b_replace(), s_refresh(), b_gets(), b_setline();
+extern int do_yank(), k_getch(), b_size(), b_insert();
+static void do_delete(), in_chars();
 
 /* do_insert - insert text */
-do_insert()
+void do_insert()
 {
 	in_chars(0, 0);
 }
 
 /* operator - apply operators */
-operator(op, line1, pos1)
+void operator(op, line1, pos1)
 char op;
 int line1, pos1;
 {
@@ -96,7 +100,7 @@ int line1, pos1;
 
 	b_getcur(&line2, &pos2);
 	line_addr = (pos2 < 0);
-	swap = (line2 < line1 || line2 == line1 && pos2 < pos1);
+	swap = ((line2 < line1) || (line2 == line1 && pos2 < pos1));
 	if (swap) {
 		/* swap so that Location 1 precedes Location 2 */
 		temp =  line1;
@@ -115,13 +119,19 @@ int line1, pos1;
 		keep_going = (k_getch() == 'y');
 	}
 
-	if (op == 'y')
-		if (!keep_going)
+	if (op == 'y') {
+		if (!keep_going) {
 			s_savemsg("Cannot yank lines.", 0);
-		else if (!line_addr)
-			UNKNOWN;
-		else if (size >= 5)
-			s_savemsg("%d lines yanked", size);
+		} else {
+			if (!line_addr) {
+				UNKNOWN;
+			} else {
+				if (size >= 5) {
+					s_savemsg("%d lines yanked", size);
+				}
+			}
+		}
+	}
 
 	if (op == 'y' || !keep_going)
 		/* return the cursor to its initial location */
@@ -168,7 +178,7 @@ int line1, pos1;
 * extends up to, but not including, the second address.  The first address must
 * precede the second.
 */
-static do_delete(line1, pos1, line2, pos2)
+static void do_delete(line1, pos1, line2, pos2)
 int line1, pos1, line2, pos2;
 {
 	char text1[MAXTEXT-1], text2[MAXTEXT-1];
@@ -209,7 +219,7 @@ int line1, pos1, line2, pos2;
 * marked for overwriting remain when input is ended (with <esc>), then they are
 * deleted from the buffer.
 */
-static in_chars(end_line, end_pos)
+static void in_chars(end_line, end_pos)
 int end_line, end_pos;
 {
 	int c, cur_line, cur_pos, i, length, start_line, start_pos;
@@ -224,9 +234,10 @@ int end_line, end_pos;
 		switch (c) {
 			case '\b':
 				/* don't back up past beginning of a line ... */
-				if (cur_pos == 0 ||
+				if ((cur_pos == 0) ||
 				/* ... or where the insertion started */
-				   cur_line == start_line && cur_pos == start_pos) {
+				   ((cur_line == start_line) &&
+				    (cur_pos == start_pos))) {
 					UNKNOWN;
 					continue;
 				}
