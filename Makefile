@@ -1,6 +1,6 @@
 # clang
 CC = clang
-CFLAGS = -O2 -Wall -std=c89 -DTERMIOS
+CFLAGS = -O2 -Wall -Wextra -std=c89 -DTERMIOS
 
 # gcc
 #CC = gcc
