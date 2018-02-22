@@ -118,12 +118,20 @@
 *		Format msg and save it for the next screen refreshing.
 */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "s.h"
 
 /* buffer operations */
 #define DELETE		1
 #define INSERT		2
 #define REPLACE		3
+
+extern void s_errmsg(), buf_gets(), buf_delete(), buf_free(), buf_init();
+extern void s_savemsg();
+extern int b_lineid(), buf_insert(), buf_id(), buf_replace();
+static void add_rec(), free_recs();
 
 static int
 	b_count = 0,		/* number of lines in the buffer */
@@ -146,9 +154,6 @@ static struct mod_rec
 	*curr_recs,		/* mod recs for current user command */
 	*prev_recs;		/* mod recs for previous user change */
 
-static add_rec();
-static free_recs();
-
 /* b_changed - tell if last command changed the buffer */
 int b_changed()
 {
@@ -156,7 +161,7 @@ int b_changed()
 }
 
 /* b_delete - manage deletion of buffer lines */
-b_delete(from, to)
+void b_delete(from, to)
 int from, to;
 {
 	int count, line;
@@ -178,13 +183,13 @@ int from, to;
 }
 
 /* b_free - manage freeing of temporary buffer storage */
-b_free()
+void b_free()
 {
 	buf_free();
 }
 
 /* b_getcur - get the cursor location */
-b_getcur(line_ptr, pos_ptr)
+void b_getcur(line_ptr, pos_ptr)
 int *line_ptr, *pos_ptr;
 {
 	*line_ptr = cur_line;
@@ -192,7 +197,7 @@ int *line_ptr, *pos_ptr;
 }
 
 /* b_getmark - get the mark's location */
-b_getmark(line_ptr, pos_ptr)
+void b_getmark(line_ptr, pos_ptr)
 int *line_ptr, *pos_ptr;
 {
 	int line;
@@ -207,12 +212,10 @@ int *line_ptr, *pos_ptr;
 }
 
 /* b_gets - manage retrieval of a buffer line */
-b_gets(k, s)
+void b_gets(k, s)
 int k;
 char *s;
 {
-	char *strcpy();
-
 	if (k < 1 || k > b_count) {
 		s_errmsg("b_gets(): improper line number %d", k);
 		strcpy(s, "");
@@ -221,7 +224,7 @@ char *s;
 }
 
 /* b_init - manage buffer initialization */
-b_init()
+void b_init()
 {
 	buf_init();
 }
@@ -259,7 +262,7 @@ int b_modified()
 }
 
 /* b_newcmd - record the start of a command */
-b_newcmd(keyboard)
+void b_newcmd(keyboard)
 int keyboard;
 {
 	changed = 0;		/* even if command was pushed back on input */
@@ -287,7 +290,7 @@ int keyboard;
 }
 
 /* b_replace - manage replacement of a buffer line */
-b_replace(k, s)
+void b_replace(k, s)
 int k;
 char *s;
 {
@@ -301,7 +304,7 @@ char *s;
 }
 
 /* b_setcur - set buffer's record of the cursor location */
-b_setcur(line, pos)
+void b_setcur(line, pos)
 int line, pos;
 {
 	if (line < 1 || line > b_count)
@@ -316,7 +319,7 @@ int line, pos;
 }
 
 /* b_setline - set cursor to first nonwhite character of line */
-b_setline(line)
+void b_setline(line)
 int line;
 {
 	int pos;
@@ -331,7 +334,7 @@ int line;
 }
 
 /* b_setmark - set buffer's mark to the cursor location */
-b_setmark()
+void b_setmark()
 {
 	mark_id = b_lineid(cur_line);
 	mark_pos = cur_pos;
@@ -344,13 +347,13 @@ int b_size()
 }
 
 /* b_unmod - record that the buffer matches the external file */
-b_unmod()
+void b_unmod()
 {
 	modified = 0;
 }
 
 /* undo - undo the last user command that changed the buffer */
-undo()
+void undo()
 {
 	struct mod_rec *m;
 
@@ -397,19 +400,19 @@ undo()
 }
 
 /* add_rec - add to the list of current modification records */
-static add_rec(type, line, del_text)
+static void add_rec(type, line, del_text)
 int type, line;
 char *del_text;
 {
 	struct mod_rec *new;
 	static int nospace = 0;	/* are we out of memory? */
-	char *malloc(), *p, *strcpy();
+	char *p;
 
 	changed = modified =  1;
 
 	/* look for the possibility of collapsing modification records */
-	if (curr_recs != NULL && curr_recs->line == line
-	   && type == REPLACE && curr_recs->type != DELETE)
+	if ((curr_recs != NULL) && (curr_recs->line == line)
+	    && (type == REPLACE) && (curr_recs->type != DELETE))
 		return;
 
 	/* do nothing if space has been exhausted */
@@ -417,8 +420,8 @@ char *del_text;
 		return;
 
 	new = (struct mod_rec *) malloc(sizeof(struct mod_rec));
-	if (new == NULL || del_text != NULL &&
-	   (p = malloc((unsigned)strlen(del_text)+1)) == NULL) {
+	if ((new == NULL || del_text != NULL) &&
+	    ((p = malloc((unsigned)strlen(del_text)+1)) == NULL)) {
 		nospace = 1;
 		free_recs(curr_recs);
 		curr_recs = NULL;
@@ -433,7 +436,7 @@ char *del_text;
 }
 
 /* free_recs - free storage for modification records */
-static free_recs(m)
+static void free_recs(m)
 struct mod_rec *m;
 {
 	struct mod_rec *a; 
