@@ -1,23 +1,23 @@
 /* lib.c - library of C procedures. */
 
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #define MAX_NAME 50	     /* maximum length of program or file name */
 
 static char prog_name[MAX_NAME+1];   /* used in error messages */
 
 /* savename - record a program name for error messages */
-savename(name)
+void savename(name)
 char *name;
 {
-	char *strcpy();
-
 	if (strlen(name) <= MAX_NAME)
 		strcpy(prog_name, name);
 }
 
 /* fatal - print message and die */
-fatal(msg)
+void fatal(msg)
 char *msg;
 {
 	if (prog_name[0] != '\0')
@@ -27,7 +27,7 @@ char *msg;
 }
 
 /* fatalf - format message, print it, and die */
-fatalf(msg, val)
+void fatalf(msg, val)
 char *msg, *val;
 {
 	if (prog_name[0] != '\0')
@@ -41,7 +41,7 @@ char *msg, *val;
 FILE *ckopen(name, mode)
 char *name, *mode;
 {
-	FILE *fopen(), *fp;
+	FILE *fp;
 
 	if ((fp = fopen(name, mode)) == NULL)
 		fatalf("Cannot open %s.", name);
@@ -52,7 +52,7 @@ char *name, *mode;
 char *ckalloc(amount)
 int amount;
 {
-	char *malloc(), *p;
+	char *p;
 
 	if ((p = malloc( (unsigned) amount)) == NULL)
 		fatal("Ran out of memory.");
@@ -70,7 +70,7 @@ char *s, *t;
 char *strsave(s)
 char *s;
 {
-	char *ckalloc(), *p, *strcpy();
+	char *p;
 
 	p = ckalloc(strlen(s)+1);	/* +1 to hold '\0' */
 	return(strcpy(p, s));
