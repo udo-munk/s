@@ -58,6 +58,8 @@
 *		Return the number of rows and columns on the screen.
 */
 
+#include <string.h>
+
 #include "s.h"
 
 /* screen control commands for ANSI terminals */
@@ -77,28 +79,29 @@
 #define SCREEN(x)	printf("\033[%s",x)
 #define SHORT_COUNT	4
 
+extern void s_errmsg();
+static void errmsg();
+static void wait();
+
 static int cur_row = 0, cur_col;	/* cursor location */
 static char save = '\0';	/* character in location (NROW, NCOL-1) */
 
-static errmsg();
-static wait();
-
 /* scr_clr - clear the current row */
-scr_clr()
+void scr_clr()
 {
 	SCREEN(CLEAR_ROW);
 	wait(LONG_COUNT);
 }
 
 /* scr_cls - clear the screen */
-scr_cls()
+void scr_cls()
 {
 	SCREEN(CLEAR_SCREEN);
 	wait(LONG_COUNT);
 }
 
 /* scr_delc - delete characters */
-scr_delc(i)
+void scr_delc(i)
 int i;
 {
 	while (i-- > 0) {
@@ -110,20 +113,20 @@ int i;
 }
 
 /* scr_delr - delete the current row */
-scr_delr()
+void scr_delr()
 {
 	SCREEN(DELETE_ROW);
 }
 
 /* scr_inr - insert a row */
-scr_inr()
+void scr_inr()
 {
 	SCREEN(INSERT_ROW);
 	save = '\0';
 }
 
 /* scr_instr - insert a string */
-scr_instr(s)
+void scr_instr(s)
 char *s;
 {
 	int s_len = strlen(s);
@@ -151,7 +154,7 @@ char *s;
 }
 
 /* scr_move - move the cursor */
-scr_move(row, col)
+void scr_move(row, col)
 int row, col;
 {
 	if (row < 1 || row > NROW)
@@ -173,7 +176,7 @@ int row, col;
 }
 
 /* scr_puts - overwrite characters on the screen */
-scr_puts(s)
+void scr_puts(s)
 char *s;
 {
 	static int bad_bytes = 0;
@@ -229,14 +232,14 @@ char *s;
 }
 
 /* scr_scrl - scroll screen rows up */
-scr_scrl()
+void scr_scrl()
 {
 	scr_move(NROW, 1);
 	putchar('\n');
 }
 
 /* scr_shape - return the number of rows and columns on the screen */	
-scr_shape(nrow_ptr, ncol_ptr)
+void scr_shape(nrow_ptr, ncol_ptr)
 int *nrow_ptr, *ncol_ptr;
 {
 	*nrow_ptr = NROW;
@@ -244,7 +247,7 @@ int *nrow_ptr, *ncol_ptr;
 }
 
 /* errmsg - print an error message and return cursor to current location */
-static errmsg(msg, val)
+static void errmsg(msg, val)
 char *msg;
 int val;
 {
@@ -255,7 +258,7 @@ int val;
 }
 
 /* wait - pause, allowing the screen to catch up */
-static wait(count)
+static void wait(count)
 int count;
 {
 	while (count-- > 0)
