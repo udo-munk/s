@@ -105,7 +105,7 @@
 #define special_char(x) (!ident_char(x) && !isspace(x))
 
 extern void b_getcur(), b_setcur(), b_gets(), b_getmark(), b_setline();
-extern char k_lastcmd();
+extern char k_lastcmd(), *s_getmsg();
 extern int b_size(), s_firstline(), s_lastline(), k_getch();
 static void do_up_down(), loc_char(), loc_word();
 static void loc_string();
@@ -505,7 +505,7 @@ char ch;
 	static char string[MAXTEXT-1];	/* remembered pattern */
 
 	int cur_line, cur_pos, first, last, len, line, pos;
-	char cur_text[MAXTEXT+1], out[2], *pat, *s_getmsg(), text[MAXTEXT+1];
+	char *pat, out[2], cur_text[MAXTEXT+1], text[MAXTEXT+1];
 
 	if (ch != '\0') {	/* get new pattern and direction */
 		way = (ch == '/') ? 1 : -1;
