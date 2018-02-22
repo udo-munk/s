@@ -12,8 +12,9 @@ extern int b_insert();
 void adjust(n)
 int n;	/* line length */
 {
-	char buf[1000], *b, *p;
+	char *b, *p;
 	int start, end, temp, remaining, put_next, get_next, pos, len;
+	char buf[1000];
 
 	if (n == 0)
 		n = LENGTH;
