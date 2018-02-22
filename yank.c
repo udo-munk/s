@@ -95,6 +95,8 @@ int line1, line2;
 	struct y_line *p, *q;
 	char *r, text[MAXTEXT-1];
 
+	p = NULL;
+
 	free_ybuf();
 	
 	for ( ; line1 <= line2; ++line1) {
