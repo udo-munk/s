@@ -96,18 +96,22 @@
 *		Return the number of the last line visible on the screen.
 */
 
+#include <string.h>
+
 #include "s.h"
 
-static do_up_down();
-static int col_to_pos();
-static int pos_to_col();
-static loc_char();
-static loc_word();
-static int word_start();
-static loc_string();
-static int locate();
+/* define "identifier character" and "special character" */
+#define ident_char(x) (isalnum(x) || x == '_')
+#define special_char(x) (!ident_char(x) && !isspace(x))
 
-address(n, c, op)
+extern void b_getcur(), b_setcur(), b_gets(), b_getmark(), b_setline();
+extern char k_lastcmd();
+extern int b_size(), s_firstline(), s_lastline(), k_getch();
+static void do_up_down(), loc_char(), loc_word();
+static void loc_string();
+static int col_to_pos(), pos_to_col(), word_start(), locate();
+
+void address(n, c, op)
 int n;
 char c, op;
 {
@@ -332,12 +336,11 @@ char c, op;
 *		on a buffer character.
 */
 
-static do_up_down(i)
+static void do_up_down(i)
 int i;
 {
 	static int col;		/* remembered column */
 	int cur_line, cur_pos, new_line, new_pos;
-	char k_lastcmd();
 
 	b_getcur(&cur_line, &cur_pos);
 	if (i > 0)
@@ -401,7 +404,7 @@ int line, pos;
 *		from the previous call to loc_char.
 */
 
-static loc_char(ch, way)
+static void loc_char(ch, way)
 char ch;
 int way;
 {
@@ -437,7 +440,7 @@ int way;
 *		beginning. Do not "wrap around" at the ends of the file.
 */		
 
-static loc_word(way)
+static void loc_word(way)
 int way;
 {
 	int cur_line, cur_pos;
@@ -463,10 +466,6 @@ int way;
 		b_setcur(cur_line, b - buf);
 }
 
-/* define "identifier character" and "special character" */
-#define ident_char(x) (isalnum(x) || x == '_')
-#define special_char(x) (!ident_char(x) && !isspace(x))
-
 /* word_start - tell if s points to the start of a word in text */
 static int word_start(s, text)
 char *s, *text;
@@ -475,8 +474,8 @@ char *s, *text;
 		return(0);
 	if (s == text)
 		return(!isspace(*s));
-	if (ident_char(*s) && !ident_char(s[-1])
-	  || special_char(*s) && !special_char(s[-1]))
+	if ((ident_char(*s) && !ident_char(s[-1]))
+	  || (special_char(*s) && !special_char(s[-1])))
 		return(1);
 	return(0);
 }
@@ -499,7 +498,7 @@ char *s, *text;
 *		string and way are taken from the previous call to loc_string.
 */
 
-static loc_string(ch)
+static void loc_string(ch)
 char ch;
 {
 	static int way;			/* remembered direction */
@@ -580,7 +579,7 @@ char ch;
 		--pos;	/* compensate for leading '\n' in text buffer */
 		pos = max(pos, 0);	/* if leading '\n' in pattern */
 		b_gets(line, text);
-		pos = min(pos, strlen(text)-1);	/* if matched '\n' after line */
+		pos = min(pos, (int)strlen(text)-1); /* if matched '\n' after line */
 		b_setcur(line, pos);
 	}
 }
