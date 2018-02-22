@@ -430,7 +430,7 @@ char *del_text;
 	}
 	new->type = type;
 	new->line = line;
-	new->del_text = (del_text != NULL) ? strcpy(p, del_text) : NULL;
+	new->del_text = (del_text != (char *)0) ? strcpy(p, del_text) : (char *)0;
 	new->next = curr_recs;
 	curr_recs = new;
 }
