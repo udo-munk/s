@@ -420,8 +420,8 @@ char *del_text;
 		return;
 
 	new = (struct mod_rec *) malloc(sizeof(struct mod_rec));
-	if ((new == NULL || del_text != NULL) &&
-	    ((p = malloc((unsigned)strlen(del_text)+1)) == NULL)) {
+	if ((new == NULL) || ((del_text != NULL) &&
+	    ((p = malloc((unsigned)strlen(del_text)+1)) == NULL))) {
 		nospace = 1;
 		free_recs(curr_recs);
 		curr_recs = NULL;
