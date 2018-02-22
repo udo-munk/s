@@ -202,7 +202,9 @@ void k_flip()
 #ifdef TERMIOS
 	struct termios newt;
 #else
+#ifndef CONIO
 	struct sgttyb newt;
+#endif
 #endif
 
 	if (!k_raw) {
