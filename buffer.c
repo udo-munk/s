@@ -39,7 +39,12 @@
 *	Doubly-linked list with a pointer to a recently referenced line.
 */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "s.h"
+
+static void reference();
 
 struct b_line {
 	char *b_text;		/* text of the line */
@@ -56,10 +61,8 @@ static int
 	last_id = 0,		/* last ID assigned to a buffer line */
 	ref_nbr;		/* number of recently referenced line */
 
-static reference();
-
 /* buf_delete - delete buffer lines */
-buf_delete(from, to)
+void buf_delete(from, to)
 int from, to;
 {
 	struct b_line *b;
@@ -77,7 +80,7 @@ int from, to;
 }
 
 /* buf_free - free temporary buffer storage */
-buf_free()
+void buf_free()
 {
 /*
 * This implementation does nothing.  Implementations using a temporary file
@@ -86,7 +89,7 @@ buf_free()
 }
 
 /* buf_gets - get a line from the buffer */
-buf_gets(k, s)
+void buf_gets(k, s)
 int k;
 char *s;
 {
@@ -105,7 +108,7 @@ int k;
 }
 
 /* buf_init - initialize the buffer */
-buf_init()
+void buf_init()
 {
 	line0.b_text = NULL;
 	line0.b_id = 0;
@@ -119,7 +122,7 @@ int k;
 char *s;
 {
 	struct b_line *p;
-	char *malloc(), *q, *strcpy();
+	char *q;
 	
 	p = (struct b_line *) malloc(sizeof(struct b_line));
 	q = malloc((unsigned)strlen(s)+1);
@@ -141,7 +144,7 @@ int buf_replace(k, s)
 int k;
 char *s;
 {
-	char *malloc(), *p, *strcpy();
+	char *p;
 
 	if ((p = malloc((unsigned)strlen(s)+1)) != NULL) {
 		reference(k);
@@ -154,7 +157,7 @@ char *s;
 }
 
 /* reference - point ref_line to the n-th buffer line; update ref_nbr */
-static reference(n)
+static void reference(n)
 int n;
 {
 	/* search forward from a recently referenced line ... */
