@@ -1,9 +1,15 @@
 /* adjust.c - handle the # command */
 
+#include <string.h>
+
 #include "s.h"
+
 #define LENGTH 78
 
-adjust(n)
+extern void b_getcur(), b_getmark(), b_gets(), b_delete(), b_setcur();
+extern int b_insert();
+
+void adjust(n)
 int n;	/* line length */
 {
 	char buf[1000], *b, *p;
@@ -36,7 +42,7 @@ int n;	/* line length */
 			b_delete(get_next, get_next);
 			--remaining;
 		}
-		while (strlen(buf) >= n) {
+		while ((int)strlen(buf) >= n) {
 			for (b = buf + n; b > buf && *b != ' '; --b)
 				;
 			if (b == buf) {
