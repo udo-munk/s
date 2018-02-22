@@ -93,8 +93,6 @@ void buf_gets(k, s)
 int k;
 char *s;
 {
-	char *strcpy();
-
 	reference(k);
 	strcpy(s, ref_line->b_text);
 }
