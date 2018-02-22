@@ -65,10 +65,16 @@ static struct termios oldt;
 static struct sgttyb oldt;
 #endif
 #endif
+#include <string.h>
 
 #include "s.h"
 
 #define CMD_MAX 500		/* longest command that can be redone */
+
+extern void s_savemsg(), s_keyboard(), b_newcmd();
+extern int b_changed();
+int k_keyin();
+void k_flip();
 
 static char
 	change[CMD_MAX+2],	/* most recent buffer-change command */
@@ -78,10 +84,8 @@ static char
 	pushed[CMD_MAX],	/* pushed-back command */
 	*push_ptr = pushed;	/* next location in pushed */
 
-static k_flip();
-
 /* k_donext - push a command back on the input stream */
-k_donext(cmd)
+void k_donext(cmd)
 char *cmd;
 {
 	int cmd_size;
@@ -100,7 +104,7 @@ char *cmd;
 }
 
 /* k_finish - close down the keyboard manager */
-k_finish()
+void k_finish()
 {
 	k_flip();
 }
@@ -121,7 +125,7 @@ int k_getch()
 }
 
 /* k_init - initialize the keyboard manager */
-k_init()
+void k_init()
 {
 	k_flip();
 }
@@ -133,7 +137,7 @@ char k_lastcmd()
 }
 
 /* k_newcmd - start a new command */
-k_newcmd()
+void k_newcmd()
 {
 	char *s;
 
@@ -150,7 +154,7 @@ k_newcmd()
 }
 
 /* k_redo - redo the last buffer-change command */
-k_redo()
+void k_redo()
 {
 	if (strlen(change) > CMD_MAX) {
 		s_savemsg("Cannot redo commands longer than %d characters.",
@@ -193,7 +197,7 @@ int k_keyin()
 * Flipping to noecho-raw mode suspends all such input processing.
 */
 
-static k_flip()
+void k_flip()
 {
 #ifdef TERMIOS
 	struct termios newt;
