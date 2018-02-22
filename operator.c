@@ -120,17 +120,12 @@ int line1, pos1;
 	}
 
 	if (op == 'y') {
-		if (!keep_going) {
+		if (!keep_going)
 			s_savemsg("Cannot yank lines.", 0);
-		} else {
-			if (!line_addr) {
-				UNKNOWN;
-			} else {
-				if (size >= 5) {
-					s_savemsg("%d lines yanked", size);
-				}
-			}
-		}
+		else if (!line_addr)
+			UNKNOWN;
+		else if (size >= 5)
+			s_savemsg("%d lines yanked", size);
 	}
 
 	if (op == 'y' || !keep_going)
