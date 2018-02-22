@@ -1,6 +1,6 @@
-# clang
+# clang on OSX
 CC = clang
-CFLAGS = -O2 -Wall -Wextra -std=c89 -DTERMIOS
+CFLAGS = -O2 -Wall -Wextra -std=c89
 
 # gcc
 #CC = gcc
