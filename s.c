@@ -91,7 +91,7 @@ int argc;
 char *argv[];
 {
 	int count, count2, cur_line, cur_pos, new_line, new_pos;
-	char c, cmd[MAXTEXT], op;
+	char c, op, cmd[MAXTEXT];
 
 	if (argc != 2)
 		fatal("usage: s file");
