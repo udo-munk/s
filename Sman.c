@@ -675,12 +675,12 @@ char	*new_text;	/* text of the new line */
 		repl_segs,	/* number of segments to be replaced */
 		seg,		/* segment of current interest */
 		tail_len;	/* length of new text after mismatch */
-	char	old_text[MAXEXPAND],	/* current displayed line */
-		*p1,		/* first mismatching character in old text */
+	char	*p1,		/* first mismatching character in old text */
 		*p2,		/* first mismatching character in new text */
 		*s1,		/* start of matching suffix in old text */
 		*s2,		/* start of matching suffix in new text */
-		*t;		/* generic character pointer */
+		*t,		/* generic character pointer */
+		old_text[MAXEXPAND];	/* current displayed line */
 
 	/* build the old line from screen segments */
 	strcpy(old_text, text[row]);
