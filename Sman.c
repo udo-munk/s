@@ -441,7 +441,7 @@ char *arg;
 
 	save = arg[maxlen];
 	arg[maxlen] = '\0';
-	fcn(arg);
+	(*fcn)(arg);
 	arg[maxlen] = save;
 }
 
