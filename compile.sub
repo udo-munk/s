@@ -1,0 +1,12 @@
+j:c -c -O s.c
+j:c -c -O commands.c
+j:c -c -O -DCONIO keyboard.c
+j:c -c -O address.c
+j:c -c -O yank.c
+j:c -c -O operator.c
+j:c -c -O bman.c
+j:c -c -O buffer.c
+j:c -c -O sman.c
+j:c -c -O screen.c
+j:c -c -O lib.c
+j:c -c -O adjust.c

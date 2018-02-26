@@ -26,6 +26,9 @@
 *	k_redo()
 *		Redo the last buffer-change command.
 *
+*	int k_keyin()
+*		Get a character from the keyboard.
+*
 *
 * External procedure calls:
 *
@@ -47,8 +50,31 @@
 *	int count;
 *		Format msg and save it for the next screen refreshing.
 */
+
+#ifdef TERMIOS
+#include <termios.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+static struct termios oldt;
+#else
+#ifdef CONIO
+#include <conio.h>
+#include <signal.h>
+#else
+#include <sgtty.h>
+static struct sgttyb oldt;
+#endif
+#endif
+#include <string.h>
+
 #include "s.h"
+
 #define CMD_MAX 500		/* longest command that can be redone */
+
+extern void s_savemsg(), s_keyboard(), b_newcmd();
+extern int b_changed();
+int k_keyin();
+void k_flip();
 
 static char
 	change[CMD_MAX+2],	/* most recent buffer-change command */
@@ -59,7 +85,7 @@ static char
 	*push_ptr = pushed;	/* next location in pushed */
 
 /* k_donext - push a command back on the input stream */
-k_donext(cmd)
+void k_donext(cmd)
 char *cmd;
 {
 	int cmd_size;
@@ -78,7 +104,7 @@ char *cmd;
 }
 
 /* k_finish - close down the keyboard manager */
-k_finish()
+void k_finish()
 {
 	k_flip();
 }
@@ -90,7 +116,7 @@ int k_getch()
 
 	/* get pushed character (preferably) or read keyboard */
 	/* use logical AND operation with octal 0177 to strip the parity bit */
-	ch = (push_ptr > pushed) ? *(--push_ptr) : getchar() & 0177;
+	ch = (push_ptr > pushed) ? *(--push_ptr) : k_keyin() & 0177;
 	/* remember character if there is room */
 	if (cmd_ptr <= command + CMD_MAX)
 		*cmd_ptr++ = ch;
@@ -99,7 +125,7 @@ int k_getch()
 }
 
 /* k_init - initialize the keyboard manager */
-k_init()
+void k_init()
 {
 	k_flip();
 }
@@ -111,7 +137,7 @@ char k_lastcmd()
 }
 
 /* k_newcmd - start a new command */
-k_newcmd()
+void k_newcmd()
 {
 	char *s;
 
@@ -128,7 +154,7 @@ k_newcmd()
 }
 
 /* k_redo - redo the last buffer-change command */
-k_redo()
+void k_redo()
 {
 	if (strlen(change) > CMD_MAX) {
 		s_savemsg("Cannot redo commands longer than %d characters.",
@@ -141,6 +167,27 @@ k_redo()
 		k_donext(change);
 }
 
+/* keyboard input mode */
+static int k_raw = 0;
+
+/*	
+* k_keyin - get a character from the keyboard
+* Hide system dependent differences in keyboard input
+*/
+
+int k_keyin()
+{
+#ifdef CONIO
+	if (k_raw) {
+		return getch();
+	} else {
+		return getchar();
+	}
+#else
+	return getchar();
+#endif
+}
+
 /*	
 * k_flip  - toggle keyboard input to and from noecho-raw mode  (UNIX)
 * Normally:
@@ -150,12 +197,51 @@ k_redo()
 * Flipping to noecho-raw mode suspends all such input processing.
 */
 
-#include <sgtty.h>
-static k_flip()
+void k_flip()
 {
-	struct sgttyb ttyb;
+#ifdef TERMIOS
+	struct termios newt;
+#else
+#ifndef CONIO
+	struct sgttyb newt;
+#endif
+#endif
 
-	ioctl(0, TIOCGETP, &ttyb);
-	ttyb.sg_flags ^= ECHO | RAW;
-	ioctl(0, TIOCSETP, &ttyb);
+	if (!k_raw) {
+		k_raw = 1;
+#ifdef CONIO
+		/* Stop SIGINT (<CTRL-C>) detection */
+		/* Keyboard reads during screen redraw kills raw input */
+		signal(SIGINT, SIG_IGN);
+#else
+#ifdef TERMIOS
+		ioctl(0, TCGETS, &oldt);
+		ioctl(0, TCGETS, &newt);
+		newt.c_lflag &= ~(ISIG|ICANON|ECHO);
+		newt.c_iflag &= ~(INLCR|IGNCR|ICRNL|IUCLC|IXON|IXOFF);
+		newt.c_oflag &= ~OPOST;
+		newt.c_cc[VMIN]  = 1;
+		newt.c_cc[VTIME] = 0;
+		ioctl(0, TCSETSW, &newt);
+#else
+		ioctl(0, TIOCGETP, &oldt);
+		ioctl(0, TIOCGETP, &newt);
+		newt.sg_flags |= RAW;
+		newt.sg_flags &= ~ECHO;
+		ioctl(0, TIOCSETP, &newt);
+#endif
+#endif
+	} else {
+		k_raw = 0;
+#ifdef CONIO
+		/* normal SIGINT handling */
+		signal(SIGINT, SIG_DFL);
+#else
+#ifdef TERMIOS
+		ioctl(0, TCSETSW, &oldt);
+#else
+		ioctl(0, TIOCSETP, &oldt);
+#endif
+#endif
+	}
 }

@@ -1,0 +1,15 @@
+-Z -Ptext=0,data,bss -C100H -Os.com \
+j:crtcpm.obj \
+s.obj \
+commands.obj \
+keyboard.obj \
+address.obj \
+yank.obj \
+operator.obj \
+bman.obj \
+buffer.obj \
+sman.obj \
+screen.obj \
+lib.obj \
+adjust.obj \
+j:libc.lib

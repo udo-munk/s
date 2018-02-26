@@ -16,7 +16,7 @@
 *
 *	A list of the addressing commands follows.  The default value of the
 *	count <n> is 1, except for commands g (where it is the number of lines
-*	in the buffer) and ctrl(d) and ctrl(u) (where it is half of a screen).
+*	in the buffer) and ctrl('d') and ctrl('u') (where it is half of a screen).
 *	Commands M, 0 (zero), ' (apostrophe), and ` (backquote) ignore the count.
 *
 *			Line Addresses:
@@ -96,9 +96,22 @@
 *		Return the number of the last line visible on the screen.
 */
 
+#include <string.h>
+
 #include "s.h"
 
-address(n, c, op)
+/* define "identifier character" and "special character" */
+#define ident_char(x) (isalnum(x) || x == '_')
+#define special_char(x) (!ident_char(x) && !isspace(x))
+
+extern void b_getcur(), b_setcur(), b_gets(), b_getmark(), b_setline();
+extern char k_lastcmd(), *s_getmsg();
+extern int b_size(), s_firstline(), s_lastline(), k_getch();
+static void do_up_down(), loc_char(), loc_word();
+static void loc_string();
+static int col_to_pos(), pos_to_col(), word_start(), locate();
+
+void address(n, c, op)
 int n;
 char c, op;
 {
@@ -108,7 +121,7 @@ char c, op;
 	char ch, text[MAXTEXT-1];
 
 	/* set default count to 1, except for three special cases */
-	if (n == 0 && c != 'g' && c != ctrl(d) && c != ctrl(u))
+	if (n == 0 && c != 'g' && c != ctrl('d') && c != ctrl('u'))
 		n = 1;
 	b_getcur(&cur_line, &cur_pos);	/* cursor location */
 	line_addr = 0;	/* reset by commands that address lines */
@@ -137,13 +150,13 @@ char c, op;
 		case '-':
 			line_addr = max (cur_line - n, 1);
 			break;
-		case ctrl(d):
+		case ctrl('d'):
 			/* ad hoc interpretation of the count */
 			if (n != 0)
 				scroll_size = n;
 			line_addr = s_lastline() + scroll_size;
 			break;
-		case ctrl(u):
+		case ctrl('u'):
 			if (n != 0)
 				scroll_size = n;
 			line_addr = max (s_firstline() - scroll_size, 1);
@@ -323,12 +336,11 @@ char c, op;
 *		on a buffer character.
 */
 
-static do_up_down(i)
+static void do_up_down(i)
 int i;
 {
 	static int col;		/* remembered column */
 	int cur_line, cur_pos, new_line, new_pos;
-	char k_lastcmd();
 
 	b_getcur(&cur_line, &cur_pos);
 	if (i > 0)
@@ -392,7 +404,7 @@ int line, pos;
 *		from the previous call to loc_char.
 */
 
-static loc_char(ch, way)
+static void loc_char(ch, way)
 char ch;
 int way;
 {
@@ -428,7 +440,7 @@ int way;
 *		beginning. Do not "wrap around" at the ends of the file.
 */		
 
-static loc_word(way)
+static void loc_word(way)
 int way;
 {
 	int cur_line, cur_pos;
@@ -454,10 +466,6 @@ int way;
 		b_setcur(cur_line, b - buf);
 }
 
-/* define "identifier character" and "special character" */
-#define ident_char(x) (isalnum(x) || x == '_')
-#define special_char(x) (!ident_char(x) && !isspace(x))
-
 /* word_start - tell if s points to the start of a word in text */
 static int word_start(s, text)
 char *s, *text;
@@ -466,8 +474,8 @@ char *s, *text;
 		return(0);
 	if (s == text)
 		return(!isspace(*s));
-	if (ident_char(*s) && !ident_char(s[-1])
-	  || special_char(*s) && !special_char(s[-1]))
+	if ((ident_char(*s) && !ident_char(s[-1]))
+	  || (special_char(*s) && !special_char(s[-1])))
 		return(1);
 	return(0);
 }
@@ -490,14 +498,14 @@ char *s, *text;
 *		string and way are taken from the previous call to loc_string.
 */
 
-static loc_string(ch)
+static void loc_string(ch)
 char ch;
 {
 	static int way;			/* remembered direction */
 	static char string[MAXTEXT-1];	/* remembered pattern */
 
 	int cur_line, cur_pos, first, last, len, line, pos;
-	char cur_text[MAXTEXT+1], out[2], *pat, *s_getmsg(), text[MAXTEXT+1];
+	char *pat, out[2], cur_text[MAXTEXT+1], text[MAXTEXT+1];
 
 	if (ch != '\0') {	/* get new pattern and direction */
 		way = (ch == '/') ? 1 : -1;
@@ -571,7 +579,7 @@ char ch;
 		--pos;	/* compensate for leading '\n' in text buffer */
 		pos = max(pos, 0);	/* if leading '\n' in pattern */
 		b_gets(line, text);
-		pos = min(pos, strlen(text)-1);	/* if matched '\n' after line */
+		pos = min(pos, (int)strlen(text)-1); /* if matched '\n' after line */
 		b_setcur(line, pos);
 	}
 }

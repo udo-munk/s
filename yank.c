@@ -48,7 +48,14 @@
 *	(not ckalloc()) so execution can continue if storage is exhausted.
 */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "s.h"
+
+extern void b_getcur(), b_setline(), s_savemsg(), b_gets();
+extern int b_insert();
+void free_ybuf();
 
 struct y_line {
 	char *y_text;
@@ -57,8 +64,9 @@ struct y_line {
 
 static struct y_line *start = NULL;
 
+
 /* do_put - copy the yank buffer to the file buffer */
-do_put(way)
+void do_put(way)
 int way;
 {
 	struct y_line *p;
@@ -85,7 +93,9 @@ int do_yank(line1, line2)
 int line1, line2;
 {
 	struct y_line *p, *q;
-	char *malloc(), *r, *strcpy(), text[MAXTEXT-1];
+	char *r, text[MAXTEXT-1];
+
+	p = NULL;
 
 	free_ybuf();
 	
@@ -110,7 +120,7 @@ int line1, line2;
 } 
 
 /* free_ybuf - free the storage for the yank buffer */
-static free_ybuf()
+void free_ybuf()
 {
 	struct y_line *p, *q;
 

@@ -5,7 +5,7 @@
 #include <ctype.h>
 
 #define CR		'\r'		/* sent by <return> key */
-#define ctrl(x)		('x' & 037)	/* control character 'x' */
+#define ctrl(x)		(x & 037)	/* control character 'x' */
 #define ESCAPE		27		/* end-of-insertion character */
 #define MAXTEXT		1000		/* maximum length of a line */
 #define SCROLL_SIZE	12		/* number of rows to scroll */

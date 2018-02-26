@@ -66,6 +66,9 @@
 *	int k_getch()					.. file keyboard.c
 *		Return the next character of the current command.
 *
+*	int k_keyin()					.. file keyboard.c
+*		Get a character from the keyboard.
+*
 *	scr_clr()					.. file screen.c
 *		Clear the remainder of the row, i.e., delete the characters
 *		under, and to the right of, the cursor.  Characters to the
@@ -117,6 +120,7 @@
 *		Return the number of rows and columns on the screen.
 */
 
+#include <string.h>
 #include "s.h"
 
 #define CLEAR		-1	/* "ID" for cleared row */
@@ -131,6 +135,15 @@
 #define TILDE		-3	/* "ID" for "~" row */
 #define USEFUL		8	/* repaint screen if fewer rows can be reused */
 
+extern void s_putmsg(), k_keyin(), scr_scrl(), scr_move(), scr_shape();
+extern void scr_clr(), scr_puts(), b_getcur(), bgets(), scr_instr();
+extern void scr_delr(), scr_inr(), b_gets(), scr_clc(), scr_cls(), scr_delc();
+extern int k_getch(), b_lineid(), b_size();
+static int after_line(), can_scroll(), expand(), good_first(), row_of_id();
+static void bottom(), changes(), chop_arg(), chop_cpy(), delete();
+static void display(), displ_text(), insert(), ins_text();
+static void pos_to_seg(), repaint(), replace(), repl_text(), scroll();
+
 static int
 	first_line = 0,		/* line number of first screen row */
 	id[MAXROWS+1],		/* ID of line at row i (subscript 0 unused) */
@@ -143,9 +156,8 @@ static char
 	msg_save[MAXCOLS+1],	/* message saved for next screen refreshing */
 	*text[MAXROWS+1];	/* text of line at row i (subscript 0 unused) */
 
-
 /* s_errmsg - format and print msg; wait for the user to read it */
-s_errmsg(msg, val)
+void s_errmsg(msg, val)
 char *msg;
 int val;
 {
@@ -153,11 +165,11 @@ int val;
 
 	sprintf(message, msg, val);
 	s_putmsg(message);
-	getchar();
+	k_keyin();
 }
 
 /* s_finish - terminate the edit session */
-s_finish()
+void s_finish()
 {
 	scr_scrl();
 	scr_move(nrows, 1);
@@ -205,7 +217,7 @@ char *msg;
 }
 
 /* s_init - initialize for an edit session */
-s_init()
+void s_init()
 {
 	int row;
 	char *ckalloc();
@@ -230,7 +242,7 @@ int s_ismsg()
 }
 
 /* s_keyboard - record if command is from the keyboard */
-s_keyboard(bit)
+void s_keyboard(bit)
 int bit;
 {
 	keyboard = bit;
@@ -248,7 +260,7 @@ int s_lastline()
 }
 
 /* s_putmsg - print a message on the last screen row */
-s_putmsg(msg)
+void s_putmsg(msg)
 char *msg;
 {
 	scr_move(nrows, 1);
@@ -260,7 +272,7 @@ char *msg;
 }
 
 /* s_refresh - refresh the screen */
-s_refresh()
+void s_refresh()
 {
 	if (keyboard) {
 		last_row = nrows - s_ismsg();
@@ -272,7 +284,7 @@ s_refresh()
 }
 
 /* s_savemsg - save msg for the next screen refreshing */
-s_savemsg(msg, val)
+void s_savemsg(msg, val)
 char *msg;
 int val;
 {
@@ -291,7 +303,7 @@ int row;
 }
 
 /* bottom - make current location visible; handle TILDE lines and messages */
-static bottom()
+static void bottom()
 {
 	int cur_col, cur_id, cur_line, cur_pos, cur_row, cur_seg, idr, junk,
 		last_seg, n, r, tilde_row;
@@ -362,7 +374,7 @@ int	new_row1,	/* row to be moved to the top of the screen */
 }
 
 /* changes - economically update the screen */
-static changes()
+static void changes()
 {
 	int	line,		/* buffer line being displayed */
 		row,		/* row where line will begin */
@@ -420,20 +432,21 @@ static changes()
 }
 
 /* chop_arg - chop a function's argument to a maximum length */
-static chop_arg(fcn, arg, maxlen)
-int (*fcn)(), maxlen;
+static void chop_arg(fcn, arg, maxlen)
+void (*fcn)();
+int maxlen;
 char *arg;
 {
 	char save;
 
 	save = arg[maxlen];
 	arg[maxlen] = '\0';
-	fcn(arg);
+	(*fcn)(arg);
 	arg[maxlen] = save;
 }
 
 /* chop_cpy - copy at most maxlen characters from s to t; add '\0' */
-static chop_cpy(s, t, maxlen)
+static void chop_cpy(s, t, maxlen)
 char *s, *t;
 {
 	while (maxlen-- > 0 && (*s++ = *t++) != '\0')
@@ -442,7 +455,7 @@ char *s, *t;
 }
 
 /* delete - delete rows from the screen */
-static delete(from, to)
+static void delete(from, to)
 int from, to;
 {
 	int k, nbr_rows = to - from + 1;
@@ -472,7 +485,7 @@ int from, to;
 }
 
 /* display - display a line */
-static display(row, line)
+static void display(row, line)
 int row, line;
 {
 	int nsegs;
@@ -484,7 +497,7 @@ int row, line;
 }
 
 /* displ_text - print the text of a line */
-static displ_text(row, line_id, nsegs, s)
+static void displ_text(row, line_id, nsegs, s)
 int row, line_id, nsegs;
 char *s;
 {
@@ -561,7 +574,7 @@ static int good_first()
 }
 
 /* insert - insert a line */
-static insert(row, line)
+static void insert(row, line)
 int row, line;
 {
 	int nsegs;
@@ -573,7 +586,7 @@ int row, line;
 }
 
 /* ins_text - insert the text of a line */
-static ins_text(row, lineid, nsegs, t)
+static void ins_text(row, lineid, nsegs, t)
 int row, lineid, nsegs;
 char *t;
 {
@@ -594,7 +607,7 @@ char *t;
 }
 
 /* pos_to_seg - convert a line position to a screen segment and column */
-static pos_to_seg(t, pos, seg_ptr, col_ptr)
+static void pos_to_seg(t, pos, seg_ptr, col_ptr)
 char *t;
 int pos, *seg_ptr, *col_ptr;
 {
@@ -611,7 +624,7 @@ int pos, *seg_ptr, *col_ptr;
 }
 
 /* repaint - completely repaint the screen */
-static repaint()
+static void repaint()
 {
 	int cur_line, cur_pos, line, row;
 
@@ -631,7 +644,7 @@ static repaint()
 }
 
 /* replace - replace a line */
-static replace(row, line, useful_row)
+static void replace(row, line, useful_row)
 int row, line, useful_row;
 {
 	int nsegs;
@@ -643,7 +656,7 @@ int row, line, useful_row;
 }
 
 /* repl_text - economically replace the text of a line */
-static repl_text(row, line_id, new_segs, useful_row, new_text)
+static void repl_text(row, line_id, new_segs, useful_row, new_text)
 int	row,		/* row containing 0-th segment of the line */
 	line_id,	/* ID of the new line */
 	new_segs,	/* number of segments in the new line */
@@ -660,16 +673,14 @@ char	*new_text;	/* text of the new line */
 		o_count,	/* number of characters to be overwritten */
 		old_segs,	/* number of segments in the old line */
 		repl_segs,	/* number of segments to be replaced */
-		scr_instr(),	/* argument to chop_arg() */
-		scr_puts(),	/* argument to chop_arg() */
 		seg,		/* segment of current interest */
 		tail_len;	/* length of new text after mismatch */
-	char	old_text[MAXEXPAND],	/* current displayed line */
-		*p1,		/* first mismatching character in old text */
+	char	*p1,		/* first mismatching character in old text */
 		*p2,		/* first mismatching character in new text */
 		*s1,		/* start of matching suffix in old text */
 		*s2,		/* start of matching suffix in new text */
-		*t;		/* generic character pointer */
+		*t,		/* generic character pointer */
+		old_text[MAXEXPAND];	/* current displayed line */
 
 	/* build the old line from screen segments */
 	strcpy(old_text, text[row]);
@@ -783,7 +794,7 @@ int	i,	/* ID being sought */
 }
 
 /* scroll - scroll the window down */
-static scroll(k, line)
+static void scroll(k, line)
 int	k,	/* number of lines to be pushed off the top of the screen */
 	line;	/* last visible line */
 {

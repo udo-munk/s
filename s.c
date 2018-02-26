@@ -81,12 +81,17 @@
 
 #include "s.h"
 
-main(argc, argv)
+extern void b_init(), k_init(), s_init(), k_donext(), s_refresh();
+extern void k_newcmd(), b_getcur(), address(), operator();
+extern int fatal(), k_getch(), simp_cmd();
+static int get_count();
+
+int main(argc, argv)
 int argc;
 char *argv[];
 {
 	int count, count2, cur_line, cur_pos, new_line, new_pos;
-	char c, cmd[MAXTEXT], op;
+	char c, op, cmd[MAXTEXT];
 
 	if (argc != 2)
 		fatal("usage: s file");
@@ -126,6 +131,7 @@ char *argv[];
 		else if (op != ' ')
 			operator(op, cur_line, cur_pos);
 	}
+	return(0);
 }
 
 /* get_count - determine a count in an edit command */

@@ -140,7 +140,19 @@
 *		Undo the most recent buffer-change command.
 */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "s.h"
+
+extern void b_getcur(), b_gets(), b_setcur(), s_refresh(), do_insert();
+extern void k_donext(), s_savemsg(), b_delete(), b_setmark();;
+extern void do_put(), s_putmsg(), b_free(), k_finish(), s_finish();
+extern void undo(), k_redo(), adjust(), b_getmark(), address();
+extern void b_newcmd(), b_unmod(), b_setline();
+extern int b_size(), b_modified(), k_getch(), s_ismsg(), strsame(), b_insert();
+static void do_star(), do_io(), do_write(), write_lines();
+static int do_read();
 
 static char cur_file[MAXTEXT];	/* remembers name of the current file */
 
@@ -293,9 +305,10 @@ char c;
 
 #define STAR_MAX  50	/* limits the number of n and redo commands */
 
-static do_star()
+static void do_star()
 {
-	static int all_lines, doing_star = 0, iterations, start_line = 0, start_pos;
+	static int all_lines, doing_star = 0, iterations, start_line = 0,
+		   start_pos;
 	int cur_line, cur_pos, done, mark_line, mark_pos, old_line, old_pos;
 
 	if (!b_modified()) {
@@ -338,9 +351,9 @@ static do_star()
 	b_getcur(&cur_line, &cur_pos);
 	b_getmark(&mark_line, &mark_pos);
 	/* done if past mark or if the search fails */
-	done = (!all_lines && cur_line >= mark_line ||
-		cur_line < old_line ||
-		cur_line == old_line && cur_pos <= old_pos);
+	done = (((!all_lines && cur_line >= mark_line) ||
+		(cur_line < old_line) ||
+		(cur_line == old_line)) && (cur_pos <= old_pos));
 	if (!done && ++iterations <= STAR_MAX)
 		/* execute a redo command then return to this procedure */
 		k_donext(".*");
@@ -367,7 +380,7 @@ static do_star()
 *
 */
 
-static do_io()
+static void do_io()
 {
 	int cur_line, cur_pos, size;
 	char *file, *s_getmsg(), msg[80], *reply;
@@ -480,7 +493,7 @@ int line;
 }
 
 /* do_write - write a file according to given specifications */
-static do_write(specs)
+static void do_write(specs)
 char *specs;
 {
 	int cur_line, cur_pos, n, new_line, new_pos;
@@ -537,7 +550,7 @@ char *specs;
 }
 
 /* write_lines - write a range of lines to a file */
-static write_lines(from, to, file)
+static void write_lines(from, to, file)
 int from, to;
 char *file;
 {
