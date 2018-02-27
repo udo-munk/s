@@ -2,8 +2,9 @@
 #CC = clang
 #CFLAGS = -O2 -Wall -Wextra -std=c89
 
-# gcc on Linux
-CC = gcc
+# clang or gcc on Linux
+#CC = gcc
+CC = clang
 CFLAGS = -O2 -Wall -std=c89 -DTERMIOS
 
 # Mark Williams C on COHERENT

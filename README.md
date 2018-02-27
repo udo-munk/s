@@ -26,6 +26,6 @@ HI-TECH C for the Z80 under CP/M
 
 clang under OSX
 
-gcc under Linux
+clang and gcc under Linux
 
 Mark Williams K&R C compiler under COHERENT
