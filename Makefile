@@ -1,10 +1,10 @@
 # clang on OSX
-CC = clang
-CFLAGS = -O2 -Wall -Wextra -std=c89
+#CC = clang
+#CFLAGS = -O2 -Wall -Wextra -std=c89
 
 # gcc on Linux
-#CC = gcc
-#CFLAGS = -O2 -Wall -std=c89 -DTERMIOS
+CC = gcc
+CFLAGS = -O2 -Wall -std=c89 -DTERMIOS
 
 # Mark Williams C on COHERENT
 #CC = cc
@@ -16,7 +16,7 @@ s:	s.o address.o adjust.o Bman.o buffer.o commands.o \
 
 install:
 	strip s
-	cp s $HOME/bin
+	cp s ${HOME}/bin
 
 clean:
 	rm -f *.o s
