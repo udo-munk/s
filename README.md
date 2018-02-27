@@ -28,4 +28,4 @@ clang under OSX
 
 gcc under Linux
 
-Mark Willimas K&R C compiler under COHERENT
+Mark Williams K&R C compiler under COHERENT
