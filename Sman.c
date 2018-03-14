@@ -856,7 +856,7 @@ int	k,	/* number of lines to be pushed off the top of the screen */
 			scr_puts(text[row]);
 		} else if (id[row] != TILDE) {
 			scr_move(row, 1);
-			if (id[row] != CLEAR);
+			if (id[row] != CLEAR)
 				scr_clr();
 			id[row] = TILDE;
 			strcpy(text[row], "~");
