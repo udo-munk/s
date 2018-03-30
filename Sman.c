@@ -448,6 +448,7 @@ char *arg;
 /* chop_cpy - copy at most maxlen characters from s to t; add '\0' */
 static void chop_cpy(s, t, maxlen)
 char *s, *t;
+int maxlen;
 {
 	while (maxlen-- > 0 && (*s++ = *t++) != '\0')
 		;

@@ -146,7 +146,7 @@
 #include "s.h"
 
 extern void b_getcur(), b_gets(), b_setcur(), s_refresh(), do_insert();
-extern void k_donext(), s_savemsg(), b_delete(), b_setmark();;
+extern void k_donext(), s_savemsg(), b_delete(), b_setmark();
 extern void do_put(), s_putmsg(), b_free(), k_finish(), s_finish();
 extern void undo(), k_redo(), adjust(), b_getmark(), address();
 extern void b_newcmd(), b_unmod(), b_setline();
