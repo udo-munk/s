@@ -149,7 +149,7 @@ extern void b_getcur(), b_gets(), b_setcur(), s_refresh(), do_insert();
 extern void k_donext(), s_savemsg(), b_delete(), b_setmark();
 extern void do_put(), s_putmsg(), b_free(), k_finish(), s_finish();
 extern void undo(), k_redo(), adjust(), b_getmark(), address();
-extern void b_newcmd(), b_unmod(), b_setline();
+extern void b_newcmd(), b_unmod(), b_setline(), s_errmsg();
 extern int b_size(), b_modified(), k_getch(), s_ismsg(), strsame(), b_insert();
 static void do_star(), do_io(), do_write(), write_lines();
 static int do_read();
@@ -483,8 +483,10 @@ int line;
 	/* copy the file to the buffer */
 	for (i = line; fgets(text, MAXTEXT, fp) != NULL; ++i) {
 		text[strlen(text)-1] = '\0';	/* trim off the newline */
-		if (b_insert(i, text) == 0)
+		if (b_insert(i, text) == 0) {
+			s_errmsg("Out of memory on line %d", i);
 			break;
+		}
 	}
 	fclose(fp);
 	/* move to the first nonwhite character in the first line read */
